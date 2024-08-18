@@ -27,8 +27,11 @@ exports.findById = async (req, res) => {
     try {
         let transaction = await Transaction.findByPk(id);
         if (transaction) {
+            // Get vendor data from user service
             let findVendor = await axios.get(`http://localhost:3001/api/user/${transaction.vendorId}`);
+            // Get customer data from user service
             let findCustomer = await axios.get(`http://localhost:3001/api/user/${transaction.customerId}`);
+            // Get meterial data from material service
             let findMaterial = await axios.get(`http://localhost:3002/api/material/${transaction.materialId}`);
             let returnData = {
                 ...transaction.dataValues,
@@ -52,12 +55,16 @@ exports.findById = async (req, res) => {
 exports.create = async (req, res) => {
     const { vendorId, customerId, materialId, transactionDate } = req.body;
     try {
+        // Get vendor data from user service
         let findVendor = await axios.get(`http://localhost:3001/api/user/${vendorId}`);
         if (findVendor.status != 200) res.status(400).json({ error: "Vendor not found" });
+        // Get customer data from user service
         let findCustomer = await axios.get(`http://localhost:3001/api/user/${customerId}`);
         if (findCustomer.status != 200) res.status(400).json({ error: "Customer not found" });
+        // Get material data from material service
         let findMaterial = await axios.get(`http://localhost:3002/api/material/${materialId}`);
         if (findMaterial.status != 200) res.status(400).json({ error: "Material not found" });
+        // Convert date string to date
         let momentTxDate = moment(transactionDate).toDate();
         let newTransaction = await Transaction.create({ vendorId: vendorId, customerId: customerId, materialId: materialId, transactionDate: momentTxDate });
         res.status(200).json(newTransaction);
@@ -77,21 +84,25 @@ exports.update = async (req, res) => {
     let toUpdate = {};
     try {
         if (vendorId) {
+            // Get vendor data from user service
             let findVendor = await axios.get(`http://localhost:3001/api/user/${vendorId}`);
             if (findVendor.status != 200) res.status(400).json({ error: "Vendor not found" });
             else toUpdate.vendorId = vendorId;
         }
         if (customerId) {
+            // Get customer data from user service
             let findCustomer = await axios.get(`http://localhost:3001/api/user/${customerId}`);
             if (findCustomer.status != 200) res.status(400).json({ error: "Customer not found" });
             else toUpdate.customerId = customerId;
         }
         if (materialId) {
+            // Get material data from material service
             let findMaterial = await axios.get(`http://localhost:3002/api/material/${materialId}`);
             if (findMaterial.status != 200) res.status(400).json({ error: "Material not found" });
             else toUpdate.materialId = materialId;
         }
         if (transactionDate) {
+            // Convert date string to date
             let momentTxDate = moment(transactionDate).toDate();
             toUpdate.transactionDate = momentTxDate;
         }
